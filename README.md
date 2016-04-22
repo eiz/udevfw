@@ -3,8 +3,8 @@
 Forwards udev events into a given network namespace. You must provide the path
 to a file suitable for use with `setns(2)`, e.g.
 
-   ip netns add my-namespace
-   udevfw /run/netns/my-namespace
+    ip netns add my-namespace
+    udevfw /run/netns/my-namespace
 
 `udevfw` must be run as root, or with `CAP_NET_ADMIN` rights.
 
