@@ -171,7 +171,8 @@ int main(int argc, const char *argv[])
     struct epoll_event ev[8] = {};
 
     if (argc != 2) {
-        fprintf(stderr, "Syntax: %s <netns-path>\n", argv[1]);
+        fprintf(stderr, "Syntax: %s <netns-path>\n", argv[0], argv[1]);
+        return 1;
     }
 
     nsfd = open(argv[1], O_RDONLY);
