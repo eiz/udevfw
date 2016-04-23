@@ -154,6 +154,7 @@ static void *namespaceThreadStart(void *unused)
             free(qhead);
             qhead = next;
             sendDeviceMessage(sendfd, dev);
+            udev_device_unref(dev);
         }
 
         pthread_mutex_unlock(&qlock);
