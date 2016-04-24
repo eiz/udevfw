@@ -5,5 +5,5 @@ in
 stdenv.mkDerivation rec {
   name = "udevfw";
   src = ./.;
-  buildInputs = [ pkgs.udev ];
+  buildInputs = [ stdenv pkgs.udev ];
 }
