@@ -72,7 +72,7 @@ static int sendDeviceMessage(int fd, struct udev_device *dev)
     };
     struct sockaddr_nl saddr = { AF_NETLINK, 0, 0, UDEV_MONITOR_UDEV };
     char *buf = 0;
-    int buflen = 0, bufpos = 0;
+    int buflen = 0, bufpos = 0, ret = 0;
     unsigned long long tagBits = 0;
     struct udev_list_entry *prop, *tag;
     const char *subsys, *devtype;
@@ -124,14 +124,13 @@ static int sendDeviceMessage(int fd, struct udev_device *dev)
         bufpos++;
     }
 
-    buf = realloc(buf, buflen + 1);
-    buflen++;
-    buf[buflen - 1] = '\0';
     header.propertiesOffset = sizeof(MessageHeader);
     header.propertiesLength = buflen;
     iov[1].iov_base = buf;
     iov[1].iov_len = buflen;
-    return sendmsg(fd, &message, 0);
+    ret = sendmsg(fd, &message, 0);
+    free(buf);
+    return ret;
 }
 
 static void *namespaceThreadStart(void *unused)
@@ -165,7 +164,11 @@ static void *namespaceThreadStart(void *unused)
 
             free(qhead);
             qhead = next;
-            sendDeviceMessage(sendfd, dev);
+
+            if (sendDeviceMessage(sendfd, dev) < 0 && errno != ECONNREFUSED) {
+                fprintf(stderr, "Failed to send message: %d\n", errno);
+            }
+
             udev_device_unref(dev);
         }
 
