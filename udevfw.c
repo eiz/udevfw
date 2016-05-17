@@ -1,11 +1,15 @@
 /*
  * Copyright (c) 2016 Mackenzie Straight. See LICENSE for license details.
  */
+
+#define _GNU_SOURCE
+#include <arpa/inet.h>
 #include <asm/types.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libudev.h>
 #include <linux/netlink.h>
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +18,8 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <pthread.h>
+
+#include "MurmurHash2.h"
 
 #define UDEV_MONITOR_UDEV 2
 #define UDEV_MONITOR_MAGIC 0xFEEDCAFE
@@ -131,9 +137,8 @@ static int sendDeviceMessage(int fd, struct udev_device *dev)
 static void *namespaceThreadStart(void *unused)
 {
     int sendfd;
-    struct epoll_event ev[8] = {};
 
-    if (setns(nsfd) < 0) {
+    if (setns(nsfd, CLONE_NEWNET) < 0) {
         perror("setns");
         exit(1);
     }
@@ -179,7 +184,7 @@ int main(int argc, const char *argv[])
     struct epoll_event ev[8] = {};
 
     if (argc != 2) {
-        fprintf(stderr, "Syntax: %s <netns-path>\n", argv[0], argv[1]);
+        fprintf(stderr, "Syntax: %s <netns-path>\n", argv[0]);
         return 1;
     }
 
