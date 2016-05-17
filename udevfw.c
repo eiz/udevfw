@@ -69,6 +69,7 @@ static int sendDeviceMessage(int fd, struct udev_device *dev)
     int buflen = 0, bufpos = 0;
     unsigned long long tagBits = 0;
     struct udev_list_entry *prop, *tag;
+    const char *subsys, *devtype;
     struct iovec iov[2] = {
         { &header, sizeof(header) },
     };
@@ -76,10 +77,16 @@ static int sendDeviceMessage(int fd, struct udev_device *dev)
         (void *)&saddr, sizeof(struct sockaddr_nl), iov, 2
     };
 
-    header.filterSubsystemHash =
-        htonl(stringHash(udev_device_get_subsystem(dev)));
-    header.filterDeviceTypeHash =
-        htonl(stringHash(udev_device_get_devtype(dev)));
+    subsys = udev_device_get_subsystem(dev);
+    devtype = udev_device_get_devtype(dev);
+
+    if (subsys) {
+        header.filterSubsystemHash = htonl(stringHash(subsys));
+    }
+
+    if (devtype) {
+        header.filterDeviceTypeHash = htonl(stringHash(devtype));
+    }
 
     udev_list_entry_foreach(tag,
         udev_device_get_tags_list_entry(dev)) {
